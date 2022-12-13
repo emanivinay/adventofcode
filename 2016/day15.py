@@ -14,6 +14,7 @@ def main():
     # 3. In general, if L is the lcm of all Ai, then valid starting t will repeat with a frequency of L.
     # 4. i.e., if t0 is the first valid starting t, then every t0 + j * L will be a valid starting point.
     # 5. Extended Euclidean algorithm can be used to efficiently compute t0.
+    # 6. Here, we do a simple iteratation over [0, L) to find earliest valid t (t0)
     for t in range(10000000):
         if all((b + t + i + 1) % a == 0 for i, (a, b) in enumerate(discs)):
             print(t)
