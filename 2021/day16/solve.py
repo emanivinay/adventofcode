@@ -4,10 +4,7 @@ from functools import reduce
 
 def toBinary(hexDigit):
     value = int(hexDigit, 16)
-    ret = bin(value)[2:]
-    while len(ret) < 4:
-        ret = '0' + ret
-    return ret
+    return bin(value)[2:].zfill(4)
 
 
 def main():
