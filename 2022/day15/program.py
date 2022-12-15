@@ -108,14 +108,6 @@ def union_of_no_beacon_zones(sensor_beacon_pairs):
     n_x = len(xs)
     n_y = len(ys)
 
-    union_square = []
-    for i in range(1, n_x):
-        for j in range(1, n_y):
-            x1, x2 = xs[i - 1], xs[i]
-            y1, y2 = ys[j - 1], ys[j]
-            for (xa, xb), (yc, yd) in no_beacon_zone_squares:
-                if 
-
 
 def main():
     input_lines = sys.stdin.read().split('\n')
