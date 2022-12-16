@@ -80,7 +80,7 @@ def range_union(ranges):
     return ret
 
 
-def union_of_no_beacon_zones(sensor_beacon_pairs):
+def union_of_no_beacon_zones(sensor_beacon_pairs, beacon_set):
     # in (x + y, x - y) space
     no_beacon_zone_squares = []
     for (sx, sy), (bx, by) in sensor_beacon_pairs:
@@ -108,6 +108,53 @@ def union_of_no_beacon_zones(sensor_beacon_pairs):
     n_x = len(xs)
     n_y = len(ys)
 
+    union_squares = []
+    for i in range(1, n_x):
+        for j in range(1, n_y):
+            x1, x2 = xs[i - 1], xs[i]
+            y1, y2 = ys[j - 1], ys[j]
+            added = False
+            for (x11, x12), (y11, y12) in no_beacon_zone_squares:
+                if not added and x11 <= x1 <= x2 - 1 <= x12 and y11 <= y1 <= y2 - 1 <= y12:
+                    union_squares.append(((x1, x2 - 1), (y1, y2 - 1)))
+                    added = True
+
+    for (xy1, xy2), _ in union_squares:
+        a = xy2 + 1
+        if a < 0 or a > 8000000:
+            break
+        # x + y = xy2 + 1 = a
+        # y_min = max(0, a - 4000000)
+        # y_max = min(4000000, a)
+        # x - y = x + y - 2 * y = a - 2 * y
+        # a - 2 * y_max <= x - y <= a - 2 * y_min
+        b_min = a - 2 * min(4000000, a)
+        b_max = a - 2 * max(0, a - 4000000)
+        ranges = []
+        for (a1, a2), (b1, b2) in union_squares:
+            if a1 <= a <= a2:
+                ranges.append((b1, b2))
+
+        cover = range_union(ranges)
+        if cover[0][0] > b_min:
+            # x + y = a, x - y = b_min
+            x, y = (b_min + a) // 2, (a - b_min) // 2
+            if (x, y) not in beacon_set:
+                return (x, y)
+        elif cover[-1][1] < b_max:
+            x, y = (b_max + a) // 2, (a - b_max) // 2
+            if (x, y) not in beacon_set:
+                return (x, y)
+
+        for i in range(1, len(cover)):
+            if cover[i - 1][1] < cover[i][0] - 1:
+                # x - y = cover[i][0] - 1
+                # x + y = a
+                x = (a + cover[i][0] - 1) // 2
+                y = (a - cover[i][0] + 1) // 2
+                if (x, y) not in beacon_set:
+                    return (x, y)
+
 
 def main():
     input_lines = sys.stdin.read().split('\n')
@@ -118,8 +165,10 @@ def main():
     ranges = range_union(potential_beacon_ranges_on_y(sensor_beacon_pairs, Y_TO_SCAN))
     print(sum((x2 - x1 + 1) for x1, x2 in ranges))
 
+    # union_of_no_beacon_zones(sensor_beacon_pairs, beacon_set)
+
     # part2
-    for y in range(4000001):
+    for y in range(1):
         ranges_on_y = range_union(potential_beacon_ranges_on_y(sensor_beacon_pairs, y, clip_range_to_0_4000000))
         if len(ranges_on_y) != 1:
             x = ranges_on_y[0][1] + 1
@@ -127,6 +176,8 @@ def main():
                 print(x * 4000000 + y, x, y)
                 break
 
+    x, y = union_of_no_beacon_zones(sensor_beacon_pairs, beacon_set)
+    print(x * 4000000 + y)
 
 if __name__ == '__main__':
     main()
