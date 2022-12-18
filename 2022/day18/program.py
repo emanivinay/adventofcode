@@ -18,7 +18,7 @@ def gen_neighbors(x, y, z):
     yield (x, y - 1, z)
 
 
-def is_trapped(x, y, z, cube_set):
+def visit_trapped(x, y, z, cube_set, trapped_set):
     queue = collections.deque()
     visited = set()
     
@@ -31,13 +31,14 @@ def is_trapped(x, y, z, cube_set):
     add(x, y, z)
     while queue:
         x, y, z = queue.popleft()
-        if min(x, y, z) < -1 or max(x, y, z) > 22:
-            return False
+        if min(x, y, z) < 0 or max(x, y, z) > 21:
+            return
         
         for xx, yy, zz in gen_neighbors(x, y, z):
             add(xx, yy, zz)
     
-    return True
+    for x, y, z in visited:
+        trapped_set.add((x, y, z))
 
 
 def main():
@@ -59,8 +60,8 @@ def main():
     for x in range(22):
         for y in range(22):
             for z in range(22):
-                if is_trapped(x, y, z, cube_set):
-                    trapped_set.add((x, y, z))
+                if (x, y, z) not in trapped_set:
+                    visit_trapped(x, y, z, cube_set, trapped_set)
     
     area = 0
     for cube in cubes:
@@ -68,6 +69,7 @@ def main():
             if neighbor not in cube_set and neighbor not in trapped_set:
                 area += 1
     print(area)
+
 
 if __name__ == '__main__':
     main()
