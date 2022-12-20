@@ -137,7 +137,7 @@ map<pair<int, int>, int> dp;
 
 int recurse(int T, int o, int c, int b, int om, int cm, int bm)
 {
-    if (T <= 1 || o > 10) {
+    if (T <= 1 ) {
         return 0;
     }
 
@@ -145,21 +145,23 @@ int recurse(int T, int o, int c, int b, int om, int cm, int bm)
     if (dp.count(key))
         return dp[key];
 
-    int ret = recurse(T - 1, o + om, c + cm, b + bm, om, cm, bm);
-    if (o >= curprint2->orc) {
-        ret = max(ret, recurse(T - 1, o - curprint2->orc + om, c + cm, b + bm, om + 1, cm, bm));
-    }
-
-    if (o >= curprint2->crc) {
-        ret = max(ret, recurse(T - 1, o - curprint2->crc + om, c + cm, b + bm, om, cm + 1, bm));
+    int ret = 0;
+    if (o >= curprint2->grc1 && b >= curprint2->grc2) {
+        ret = max(ret, (T - 1) + recurse(T - 1, o - curprint2->grc1 + om, c + cm, b + bm - curprint2->grc2, om, cm, bm));
+        return dp[key] = ret;
     }
 
     if (o >= curprint2->brc1 && c >= curprint2->brc2) {
         ret = max(ret, recurse(T - 1, o - curprint2->brc1 + om, c - curprint2->brc2 + cm, b + bm, om, cm, bm + 1));
+        return dp[key] = ret;
     }
+    if (o >= curprint2->orc) {
+        ret = max(ret, recurse(T - 1, o - curprint2->orc + om, c + cm, b + bm, om + 1, cm, bm));
+    }
+    ret = max(ret, recurse(T - 1, o + om, c + cm, b + bm, om, cm, bm));
 
-    if (o >= curprint2->grc1 && b >= curprint2->grc2) {
-        ret = max(ret, (T - 1) + recurse(T - 1, o - curprint2->grc1 + om, c + cm, b + bm - curprint2->grc2, om, cm, bm));
+    if (o >= curprint2->crc) {
+        ret = max(ret, recurse(T - 1, o - curprint2->crc + om, c + cm, b + bm, om, cm + 1, bm));
     }
 
     return dp[key] = ret;
