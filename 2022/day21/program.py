@@ -87,11 +87,15 @@ def main():
     # This is a tree graph of algebraic expressions, with root at 'root'
     # let x be the value that 'humn' should yell.
     # First evaluate the two children of root and get their values as linear functions of 'x'
-    d1, d2 = 'gqjg', 'rpjv'
-    print(f(d1))
-    print(f(d2))
+    d1, d2 = monkey_map['root'][1]
 
     # Now equate these two linear expressions and solve for x.
+    # ax + b = cx + d
+    a, b = f(d1).coeff, f(d1).const
+    c, d = f(d2).coeff, f(d2).const
+
+    x = (d - b) / (a - c)
+    print(x)
 
 
 if __name__ == '__main__':
