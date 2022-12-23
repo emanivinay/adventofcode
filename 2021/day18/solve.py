@@ -1,69 +1,135 @@
-def parse(exprString):
-    return eval(exprString)
+import sys
 
-def depth(expr):
-    if isinstance(expr, int):
+
+def max_depth(node):
+    if isinstance(node, int):
         return 0
-
-    return 1 + max(depth(expr[0]), depth(expr[1]))
-
-
-def pathTo(expr, need):
-    if isinstance(expr, int):
-        return [] if need == 0 else None
-
-    lpath = pathTo(expr[0], max(need - 1, 0))
-    if lpath is not None:
-        return [0] + lpath
-
-    rpath = pathTo(expr[1], max(need - 1, 0))
-    if rpath is not None:
-        return [1] + rpath
-
-    return None
+    return 1 + max(max_depth(node[0]), max_depth(node[1]))
 
 
-def bignum(expr):
-    if isinstance(expr, int):
-        return (expr, [])
-
-    left, leftPath = bignum(expr[0])
-    right, rightPath = bignum(expr[1])
-
-    if left >= right:
-        return left, [0] + leftPath
-    return right, [1] + rightPath
+def max_regular_number(node):
+    if isinstance(node, int):
+        return node
+    return max(max_regular_number(node[0]), max_regular_number(node[1]))
 
 
-def reduce(expr):
-    path = pathTo(expr, 5)
-    if path is not None:
-        return explode(expr, path)
+def get_parent_of_right_most_regular_no(lst):
+    while not isinstance(lst[1], int):
+        lst = lst[1]
+    return lst
+
+
+def get_parent_of_left_most_regular_no(lst):
+    while not isinstance(lst[0], int):
+        lst = lst[0]
+    return lst
+
+
+def is_regular_pair(node):
+    return isinstance(node, list) and isinstance(node[0], int) and isinstance(node[1], int)
+
+
+def get_exploding_pair(lst):
+    node, stack, direction = lst, [], None
+    while len(stack) < 4:
+        need_depth = 4 - len(stack)
+        stack.append((node, direction))
+        if max_depth(lst[0]) >= need_depth:
+            # going left
+            node = node[0]
+            direction = 0
+        elif max_depth(lst[1]) >= need_depth:
+            # going right
+            node = node[1]
+            direction = 1
+        else:
+            return (None, None)
     
-    maxval, path = bignum(expr)
-    if maxval >= 10:
-        pass
-
-    return expr
-
-
-def add(expr1, expr2):
-    return expr2 if not expr1 else reduce([expr1, expr2])
-
-
-def magnitude(expr):
-    if isinstance(expr, int):
-        return expr
+    while not is_regular_pair(node):
+        stack.append((node, direction))
+        if isinstance(node[0], list):
+            direction = 0
+            node = node[0]
+        else:
+            direction = 1
+            node = node[1]
     
-    return 3 * magnitude(expr[0]) + 2 * magnitude(expr[1])
+    stack.append((node, direction))
+    return (stack, node)
+
+
+def get_splitting_number(lst):
+    node, parent, direction = lst, None, None
+    if max_regular_number(node) < 10:
+        return (None, None)
+    
+    while isinstance(node, list):
+        parent = node
+        if max_regular_number(node[0]) >= 10:
+            node = node[0]
+            direction = 0
+        else:
+            node = node[1]
+            direction = 1
+    
+    return (parent, direction)
+    
+
+def reduce(number):
+    estack, enode = get_exploding_pair(number)
+    if enode is None:
+        # no exploding pair, look for splitting number
+        spar, sdir = get_splitting_number(number)
+        if sdir is None:
+            return
+        snumber = spar[sdir]
+        a = snumber // 2
+        b = (snumber + 1) // 2
+        spar[sdir] = [a, b]
+    else:
+        # There is an exploding pair.
+        [a, b] = enode
+        n = len(estack)
+        for i in range(n - 1, 0, -1):
+            if estack[i][1] == 1:
+                sibling = estack[i - 1][0]
+                to_add = get_parent_of_right_most_regular_no(sibling)
+                to_add[1] += a
+        
+        for i in range(n - 1, 0, -1):
+            if estack[i][1] == 0:
+                sibling = estack[i - 1][1]
+                to_add = get_parent_of_left_most_regular_no(sibling)
+                to_add[0] += b
+
+        estack[-2][estack[-1][1]] = 0
+
+
+def add_snailfish_numbers(number1, number2):
+    new_number = [number1, number2]
+    reduce(new_number)
+    return new_number
+
+
+def magnitude(number):
+    if isinstance(number, int):
+        return number
+    
+    a, b = number
+    return 3 * magnitude(a) + 2 * magnitude(b)
 
 
 def main():
-    expr = None
-    for _ in range(100):
-        expr = add(expr, parse(input.strip()))
+    numbers = [eval(line.strip()) for line in sys.stdin.readlines()]
 
-    print(magnitude(expr))
+    # part 1
+    result = None
+    for number in numbers:
+        if result is None:
+            result = number
+        else:
+            result = add_snailfish_numbers(result, number)
+    print(magnitude(result))
 
 
 main()
