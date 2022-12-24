@@ -61,7 +61,7 @@ def main():
     R = len(valley)
     C = len(valley[0])
 
-    T = (R - 2) * (C - 2)
+    T = lcm(R - 2, C - 2)
     blizzards = [[[0] * T for _ in range(C)] for _ in range(R)]
 
     def adjust(x, l, r):
