@@ -6,7 +6,6 @@ INTCODE_BINARY_OPERATOR_MAP = {
     2: mul,
 }
 
-
 relative_base = [0]
 
 def get_parameter_mode(opcode, param_pos):
@@ -14,14 +13,24 @@ def get_parameter_mode(opcode, param_pos):
     return (opcode // (10 ** (param_pos + 2))) % 10
 
 
-def get_parameter_value(program, param, param_mode):
+def get_parameter_value(program, param, param_mode, input_param=True):
     if param_mode == 1:
         return param
+    elif param_mode == 0:
+        return program[param] if input_param else param
     else:
-        return program[param + relative_base[0]]
+        return program[param + relative_base[0]] if input_param else (param + relative_base[0])
 
 
-def simulate_intcode_computer(program):
+def stdin_inputter():
+    return int(input().strip())
+
+
+def stdout_outputter(value):
+    print(value)
+
+
+def simulate_intcode_computer(program, inputter=stdin_inputter, outputter=stdout_outputter):
     i = 0
     while i < len(program):
         opcode = program[i]
@@ -32,22 +41,23 @@ def simulate_intcode_computer(program):
         if op in INTCODE_BINARY_OPERATOR_MAP:
             a, b, c = program[i + 1 : i + 4]
             pm0, pm1, pm2 = get_parameter_mode(opcode, 0), get_parameter_mode(opcode, 1), get_parameter_mode(opcode, 2)
-            pv0, pv1, pv2 = [get_parameter_value(program, param, mode) for (param, mode) in [(a, pm0), (b, pm1), (c, pm2)]]
+            pv0, pv1, pv2 = get_parameter_value(program, a, pm0), get_parameter_value(program, b, pm1),\
+                get_parameter_value(program, c, pm2, False)
             program[pv2] = INTCODE_BINARY_OPERATOR_MAP[op](pv0, pv1)
             i += 4
         elif op == 3:
             # Read a single integer from stdin
             a = program[i + 1]
             pm0 = get_parameter_mode(opcode, 0)
-            pv0 = get_parameter_value(program, a, pm0)
-            program[pv0] = int(input().strip())
+            pv0 = get_parameter_value(program, a, pm0, False)
+            program[pv0] = inputter()
             i += 2
         elif op == 4:
             # output a string to stdout in a line by itself
             a = program[i + 1]
             pm0 = get_parameter_mode(opcode, 0)
             pv0 = get_parameter_value(program, a, pm0)
-            print(pv0)
+            outputter(pv0)
             i += 2
         elif op in (5, 6):
             # jump if true/false
@@ -61,7 +71,8 @@ def simulate_intcode_computer(program):
         elif op in (7, 8):
             a, b, c = program[i + 1: i + 4]
             pm0, pm1, pm2 = get_parameter_mode(opcode, 0), get_parameter_mode(opcode, 1), get_parameter_mode(opcode, 2)
-            pv0, pv1, pv2 = get_parameter_value(program, a, pm0), get_parameter_value(program, b, pm1), get_parameter_value(program, c, pm2)
+            pv0, pv1, pv2 = get_parameter_value(program, a, pm0), get_parameter_value(program, b, pm1),\
+                get_parameter_value(program, c, pm2, False)
             program[pv2] = 1 if ((op == 7 and pv0 < pv1) or (op == 8 and pv0 == pv1)) else 0
             i += 4
         elif op == 9:
@@ -69,6 +80,6 @@ def simulate_intcode_computer(program):
             pm0 = get_parameter_mode(opcode, 0)
             pv0 = get_parameter_value(program, a, pm0)
             relative_base[0] += pv0
-            i += 2 
+            i += 2
         else:
             assert False
