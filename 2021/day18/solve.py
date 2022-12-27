@@ -13,16 +13,26 @@ def max_regular_number(node):
     return max(max_regular_number(node[0]), max_regular_number(node[1]))
 
 
-def get_parent_of_right_most_regular_no(lst):
-    while not isinstance(lst[1], int):
+def get_parent_of_right_most_regular_no(lst, estack, i):
+    if isinstance(lst, int):
+        return estack[i - 1]
+
+    ret = lst
+    while isinstance(lst, list):
+        ret = lst
         lst = lst[1]
-    return lst
+    return ret
 
 
-def get_parent_of_left_most_regular_no(lst):
-    while not isinstance(lst[0], int):
+def get_parent_of_left_most_regular_no(lst, estack, i):
+    if isinstance(lst, int):
+        return estack[i - 1]
+
+    ret = lst
+    while isinstance(lst, list):
+        ret = lst
         lst = lst[0]
-    return lst
+    return ret
 
 
 def is_regular_pair(node):
@@ -34,11 +44,11 @@ def get_exploding_pair(lst):
     while len(stack) < 4:
         need_depth = 4 - len(stack)
         stack.append((node, direction))
-        if max_depth(lst[0]) >= need_depth:
+        if max_depth(node[0]) >= need_depth:
             # going left
             node = node[0]
             direction = 0
-        elif max_depth(lst[1]) >= need_depth:
+        elif max_depth(node[1]) >= need_depth:
             # going right
             node = node[1]
             direction = 1
@@ -93,13 +103,13 @@ def reduce(number):
         for i in range(n - 1, 0, -1):
             if estack[i][1] == 1:
                 sibling = estack[i - 1][0]
-                to_add = get_parent_of_right_most_regular_no(sibling)
+                to_add = get_parent_of_right_most_regular_no(sibling, estack, i - 1)
                 to_add[1] += a
         
         for i in range(n - 1, 0, -1):
             if estack[i][1] == 0:
                 sibling = estack[i - 1][1]
-                to_add = get_parent_of_left_most_regular_no(sibling)
+                to_add = get_parent_of_left_most_regular_no(sibling, estack, i - 1)
                 to_add[0] += b
 
         estack[-2][estack[-1][1]] = 0
@@ -124,7 +134,7 @@ def main():
 
     # part 1
     result = None
-    for number in numbers:
+    for number in numbers[:2]:
         if result is None:
             result = number
         else:
