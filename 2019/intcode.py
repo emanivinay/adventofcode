@@ -30,7 +30,8 @@ def stdout_outputter(value):
     print(value)
 
 
-def simulate_intcode_computer(program, inputter=stdin_inputter, outputter=stdout_outputter):
+def simulate_intcode_computer(program, inputter=stdin_inputter, outputter=stdout_outputter, exiter=None):
+
     i = 0
     while i < len(program):
         opcode = program[i]
@@ -51,6 +52,9 @@ def simulate_intcode_computer(program, inputter=stdin_inputter, outputter=stdout
             pm0 = get_parameter_mode(opcode, 0)
             pv0 = get_parameter_value(program, a, pm0, False)
             program[pv0] = inputter()
+            # Hack to stop vm for day15 problem.
+            if program[pv0] == 999:
+                break
             i += 2
         elif op == 4:
             # output a string to stdout in a line by itself
@@ -81,5 +85,6 @@ def simulate_intcode_computer(program, inputter=stdin_inputter, outputter=stdout
             pv0 = get_parameter_value(program, a, pm0)
             relative_base[0] += pv0
             i += 2
-        else:
-            assert False
+
+    if exiter:
+        exiter()
