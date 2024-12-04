@@ -177,7 +177,7 @@ def main():
                 break
 
     x, y = union_of_no_beacon_zones(sensor_beacon_pairs, beacon_set)
-    print(x * 4000000 + y)
+    print(x * 4000000 + y, x, y)
 
 if __name__ == '__main__':
     main()

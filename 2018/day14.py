@@ -1,6 +1,5 @@
-def simulate(num_recipes):
-    recipes = [3, 7]
-    N, fst, snd = 2, 0, 1
+def simulate(num_recipes, recipes, fst=0, snd=1):
+    N, fst, snd = len(recipes), 0, 1
     while N < num_recipes:
         a = recipes[fst]
         b = recipes[snd]
@@ -21,13 +20,20 @@ def simulate(num_recipes):
 
 RECIPES = 440231
 
+
 def main():
-    recipes = simulate(RECIPES + 10)
+    recipes = simulate(21000000, [3, 7])
     # part 1
     print(''.join(str(recipes[i]) for i in range(RECIPES, RECIPES + 10)))
 
-    DIGITS = [int(d) for d in str(RECIPES)]
+    # part 2
+    recipe_digits = [4, 4, 0, 2, 3, 1]
 
-    
+    for i in range(len(recipes) - 5):
+        if recipes[i] == 4 and recipes[i + 1] == 4 and recipes[i + 2] == 0\
+            and recipes[i + 3] == 2 and recipes[i + 4] == 3 and recipes[i + 5] == 1:
+            print(i)
+            break
+
 
 main()

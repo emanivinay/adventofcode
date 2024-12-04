@@ -65,7 +65,7 @@ def try_moving1(y, x, direction, grid):
         return (True, yy, xx, direction)
 
 
-# This only works with my input data.
+# All input sets have same cube layout.
 def boundary_cross_map():
     ret = dict()
     ret2 = dict()
