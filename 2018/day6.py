@@ -1,80 +1,77 @@
 import sys
-
-# x, y and order = E, NE, N, NW, W, SW, S, SE
-DIRECTIONS = [(1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1), (0, -1), (1, -1)]
-
-
-def sign(x):
-    return 1 if x > 0 else (0 if x == 0 else -1)
+import collections
+import itertools
+import functools
 
 
-def direction(dx, dy):
-    return DIRECTIONS.index((sign(dx), sign(dy)))
+def split_line_to_type(line, type_converter, split_by=' '):
+    return [type_converter(word) for word in line.split(split_by)]
 
 
-ZERO_BOUND = 10001
+split_ints = lambda line: split_line_to_type(line, int, ', ')
 
 
-def mid(x1, x2):
-    if x1 == x2:
-        return ZERO_BOUND
-    elif x1 > x2:
-        dx = x1 - x2
-        if dx % 2 == 0:
-            return x1 - (dx // 2) + 1
-        else:
-            return x1 - (dx // 2)
-    else:
-        dx = x2 - x1
-        if dx % 2 == 0:
-            return x1 + (dx // 2) - 1
-        else:
-            return x1 + (dx // 2)
+def distance(p1, p2):
+    x1, y1 = p1
+    x2, y2 = p2
+    return abs(x1 - x2) + abs(y1 - y2)
 
 
-def mid_line(x1, y1, x2, y2):
-    dx = x2 - x1
-    dy = y2 - y1
-
-    return (direction(dx, dy), mid(x1, x2), mid(y1, y2))
+def distances_from(p, coords, least_only=False):
+    f = min if least_only else sorted
+    return f((distance(p, c), i) for i, c in enumerate(coords))
 
 
-def update(df, old, new):
-    if old is None or df == 0:
-        return new
-    elif new is None:
-        return old
-    elif df > 0:
-        return min(old, new)
-    else:
-        return max(old, new)
-
-
-def update_bounding_box(dir, edge, x_new, y_new):
-    edge[0] = update(dir[0], edge[0], x_new)
-    edge[1] = update(dir[1], edge[1], y_new)
+def sum_distances_from(p, coords):
+    return sum(distance(p, c) for c in coords)
 
 
 def main():
-    points = [[int(w) for w in line.split(', ')] for line in sys.stdin.readlines()]
-    N = len(points)
-
-    bounding_edges = [[[None, None] for _ in DIRECTIONS] for _ in points]
-    for i in range(N):
-        x1, y1 = points[i]
-        for j in range(i):
-            x2, y2 = points[j]
-            dir_ij, x_mid, y_mid = mid_line(x1, y1, x2, y2)
-            update_bounding_box(DIRECTIONS[dir_ij], bounding_edges[i][dir_ij], x_mid, y_mid)
-
-            dir_ji, x_mid, y_mid = mid_line(x2, y2, x1, y1)
-            update_bounding_box(DIRECTIONS[dir_ji], bounding_edges[j][dir_ji], x_mid, y_mid)
+    coords = [split_ints(line) for line in sys.stdin.read().split('\n')]
+    N = len(coords)
+    M = 500
+    infinite_regions = set()
+    for x in range(-M, M + 1):
+        for y in [M, -M]:
+            dists = distances_from((x, y), coords)
+            if dists[0][0] < dists[1][0]:
+                infinite_regions.add(dists[0][1])
+            dists = distances_from((y, x), coords)
+            if dists[0][0] < dists[1][0]:
+                infinite_regions.add(dists[0][1])
     
-    for i in range(N):
-        for d in range(8):
-            bound = 'x' if (None in bounding_edges[i][d] or ZERO_BOUND in bounding_edges[i][d]) else bounding_edges[i][d]
-            print(bound, end=' ')
-        print()
+    finite_region_areas = collections.defaultdict(int)
+
+    bfs_q = collections.deque()
+    visited = set()
+
+    for y in range(-M, M + 1):
+        for x in range(-M, M + 1):
+            dists = distances_from((x, y), coords)
+            sum_dists = sum_distances_from((x, y), coords)
+            if sum_dists < 10000:
+                bfs_q.append((y, x))
+                visited.add((y, x))
+            if dists[0][0] < dists[1][0]:
+                nearest = dists[0][1]
+                if nearest not in infinite_regions:
+                    finite_region_areas[nearest] += 1
+    
+    print(max(finite_region_areas.values()))
+
+    # do a flood-fill starting from sy, sx
+    ADJACENT = [(0, 1), (-1, 0), (0, -1), (1, 0)]
+
+    while bfs_q:
+        y, x = bfs_q.popleft()
+        for dy, dx in ADJACENT:
+            y2, x2 = y + dy, x + dx
+            if (y2, x2) not in visited and sum_distances_from((x2, y2), coords) < 10000:
+                visited.add((y2, x2))
+                bfs_q.append((y2, x2))
+    
+    print(len(visited))
 
 
-main()
+if __name__ == '__main__':
+    main()

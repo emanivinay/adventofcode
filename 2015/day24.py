@@ -26,7 +26,6 @@ def main():
 
     total = 0
     for w in weights:
-        print(w)
         for f in range(need, -1, -1):
             for s in range(need, -1, -1):
                 t = total - f - s
@@ -40,7 +39,7 @@ def main():
         
         for f2 in range(need2, -1, -1):
             for s2 in range(need2, -1, -1):
-                for t2 in range(min(need2, total - f2 - s2), max(-1, total - f2- s2 - need2 -1), -1):
+                for t2 in range(min(need2, total - f2 - s2), max(-1, total - f2 - s2 - need2 - 1), -1):
                     r2 = total - f2 - s2 - t2
                     # t2 <= total - f2 - s2
                     # t2 > total - f2 - s2 - need2 - 1
